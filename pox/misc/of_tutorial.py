@@ -23,6 +23,7 @@ It's roughly similar to the one Brandon Heller did for NOX.
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
+import pdb
 
 log = core.getLogger()
 
@@ -73,7 +74,8 @@ class Tutorial (object):
     # OFPP_ALL port as the output port.  (We could have also used
     # OFPP_FLOOD.)
     self.resend_packet(packet_in, of.OFPP_ALL)
-
+    log.debug("inside act like hub\n")
+    log.debug(packet_in)
     # Note that if we didn't get a valid buffer_id, a slightly better
     # implementation would check that we got the full data before
     # sending it (len(packet_in.data) should be == packet_in.total_len)).
@@ -84,17 +86,16 @@ class Tutorial (object):
     Implement switch-like behavior.
     """
 
-    """ # DELETE THIS LINE TO START WORKING ON THIS (AND THE ONE BELOW!) #
-
     # Here's some psuedocode to start you off implementing a learning
     # switch.  You'll need to rewrite it as real Python code.
 
     # Learn the port for the source MAC
-    self.mac_to_port ... <add or update entry>
-
-    if the port associated with the destination MAC of the packet is known:
+    #self.mac_to_port ... <add or update entry>
+    self.mac_to_port[str(packet.src)] = packet_in.in_port 
+    if str(packet.dst) in self.mac_to_port:
       # Send packet out the associated port
-      self.resend_packet(packet_in, ...)
+      port = self.mac_to_port[str(packet.dst)]
+      self.resend_packet(packet_in, port)
 
       # Once you have the above working, try pushing a flow entry
       # instead of resending the packet (comment out the above and
@@ -115,9 +116,8 @@ class Tutorial (object):
     else:
       # Flood the packet out everything but the input port
       # This part looks familiar, right?
-      self.resend_packet(packet_in, of.OFPP_ALL)
-
-    """ # DELETE THIS LINE TO START WORKING ON THIS #
+      #self.resend_packet(packet_in, of.OFPP_ALL)
+      log.debug("ideal")
 
 
   def _handle_PacketIn (self, event):
@@ -134,8 +134,8 @@ class Tutorial (object):
 
     # Comment out the following line and uncomment the one after
     # when starting the exercise.
-    self.act_like_hub(packet, packet_in)
-    #self.act_like_switch(packet, packet_in)
+    #self.act_like_hub(packet, packet_in)
+    self.act_like_switch(packet, packet_in)
 
 
 
@@ -144,6 +144,8 @@ def launch ():
   Starts the component
   """
   def start_switch (event):
+    log.debug("inside start_switch")
     log.debug("Controlling %s" % (event.connection,))
     Tutorial(event.connection)
+    log.debug("event.connectin")
   core.openflow.addListenerByName("ConnectionUp", start_switch)
